@@ -67,7 +67,9 @@ let brower: Browser
     core.info("[" + new Date().toISOString() + "]浏览器下载完成")
 
     core.info("[" + new Date().toISOString() + "]开始自动刷新gitee pages")
-    brower = await puppeteer.launch()
+    brower = await puppeteer.launch({
+        args: ['--lang=zh-CN']
+    })
     let page = await brower.newPage()
     core.startGroup("[" + new Date().toISOString() + "]开始登陆")
     await page.goto("https://gitee.com/login")

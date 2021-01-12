@@ -106,7 +106,9 @@ let brower;
     yield install_1.downloadBrowser();
     core.info("[" + new Date().toISOString() + "]浏览器下载完成");
     core.info("[" + new Date().toISOString() + "]开始自动刷新gitee pages");
-    brower = yield puppeteer_1.default.launch();
+    brower = yield puppeteer_1.default.launch({
+        args: ['--lang=zh-CN']
+    });
     let page = yield brower.newPage();
     core.startGroup("[" + new Date().toISOString() + "]开始登陆");
     yield page.goto("https://gitee.com/login");
