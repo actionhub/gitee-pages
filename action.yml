@@ -1,0 +1,28 @@
+name: 'Auto Refresh Gitee Pages'
+description: '自动刷新gitee pages服务'
+runs:
+  using: 'node12'
+  main: 'index.js'
+inputs:
+  username:
+    description: '用户名'
+    required: true
+  password:
+    description: '密码'
+    required: true
+  repository:
+    description: '仓库地址'
+    require: true
+  branch:
+    description: '部署分支'
+    required: false
+    default: master
+  directory:
+    description: '部署目录'
+    required: false
+    default: ''
+  https:
+    description: '开启https'
+    required: false
+    default: true
+
