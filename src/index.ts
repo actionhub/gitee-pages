@@ -98,7 +98,7 @@ let brower: Browser
 
     core.startGroup("[" + new Date().toISOString() + "]配置pages")
     await page.waitForSelector(".branch-choose-wrap");
-    await page.waitForSelector(".branch-choose-wrap input[placeholder=搜索分支]");
+    // await page.waitForSelector(".branch-choose-wrap input[placeholder=搜索分支]");
     await page.waitForSelector("#build_directory");
     await page.waitForSelector(".force-https-checkbox");
 
