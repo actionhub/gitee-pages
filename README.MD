@@ -28,7 +28,14 @@ module.exports = {
 
 其实 `actionInput` 的配置与 github pages的 workflows文件一致。
 
-执行 `npm run dev` 即可在本地运行
+然后执行 `npm install` 安装依赖
+
+如果安装puppeteer失败，可先全局安装cross-env，然后再执行下面代码
+```
+cross-env PUPPETEER_DOWNLOAD_HOST=https://npm.taobao.org/mirrors/ npm install
+```
+
+最后执行 `npm run dev` 即可在本地运行
 
 ## 使用
 
@@ -46,4 +53,14 @@ module.exports = {
     https: false
 ```
 
+## 已知问题
 
+如果action日志中出现的错误是
+
+```
+Error: 找开的页面一直不对，重试了100 次https://gitee.com/login/two-factor?verify_token=xxxxxxxxxxxxxxxxxxxxxx
+```
+
+翻墙后访问该网站可以得到如图所示，这是因为gitee自动开启了两步校验，按图中提示，关注公众号，并绑定账号，即可解决
+
+![a](img.png)

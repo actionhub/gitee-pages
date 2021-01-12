@@ -130,7 +130,6 @@ let brower;
     core.endGroup();
     core.startGroup("[" + new Date().toISOString() + "]配置pages");
     yield page.waitForSelector(".branch-choose-wrap");
-    yield page.waitForSelector(".branch-choose-wrap input[placeholder=搜索分支]");
     yield page.waitForSelector("#build_directory");
     yield page.waitForSelector(".force-https-checkbox");
     yield page.click(".branch-choose-wrap");
