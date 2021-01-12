@@ -98,13 +98,13 @@ let brower: Browser
 
     core.startGroup("[" + new Date().toISOString() + "]配置pages")
     await page.waitForSelector(".branch-choose-wrap");
-    // await page.waitForSelector(".branch-choose-wrap input[placeholder=搜索分支]");
+    await page.waitForSelector(".branch-choose-wrap .search.input input");
     await page.waitForSelector("#build_directory");
     await page.waitForSelector(".force-https-checkbox");
 
     await page.click(".branch-choose-wrap")
     core.info("[" + new Date().toISOString() + "]点击分支下拉框")
-    await page.type(".branch-choose-wrap input[placeholder=搜索分支]", branch, {delay: random(100, 200)})
+    await page.type(".branch-choose-wrap .search.input input", branch, {delay: random(100, 200)})
     core.info("[" + new Date().toISOString() + "]输入分支名:" + branch)
 
     const els = await page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");

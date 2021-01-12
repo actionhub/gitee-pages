@@ -130,11 +130,12 @@ let brower;
     core.endGroup();
     core.startGroup("[" + new Date().toISOString() + "]配置pages");
     yield page.waitForSelector(".branch-choose-wrap");
+    yield page.waitForSelector(".branch-choose-wrap .search.input input");
     yield page.waitForSelector("#build_directory");
     yield page.waitForSelector(".force-https-checkbox");
     yield page.click(".branch-choose-wrap");
     core.info("[" + new Date().toISOString() + "]点击分支下拉框");
-    yield page.type(".branch-choose-wrap input[placeholder=搜索分支]", branch, { delay: random(100, 200) });
+    yield page.type(".branch-choose-wrap .search.input input", branch, { delay: random(100, 200) });
     core.info("[" + new Date().toISOString() + "]输入分支名:" + branch);
     const els = yield page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");
     if (els.length < 1) {
