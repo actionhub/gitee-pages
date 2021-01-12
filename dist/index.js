@@ -166,11 +166,9 @@ let brower;
             try {
                 const msg = "确定重新部署 Gitee Pages 吗?";
                 core.info("[" + new Date().toISOString() + "]监听到弹框：" + e.message());
-                if (e.message() == msg) {
-                    core.info("[" + new Date().toISOString() + "]点击确认");
-                    yield e.accept(msg);
-                    core.info("[" + new Date().toISOString() + "]点击完成，等待部署完成！");
-                }
+                core.info("[" + new Date().toISOString() + "]点击确认");
+                yield e.accept(e.message());
+                core.info("[" + new Date().toISOString() + "]点击完成，等待部署完成！");
                 resolve();
             }
             catch (e) {
