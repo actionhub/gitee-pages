@@ -23,7 +23,7 @@ async function ensureCurrentPage(page: Page, url: string) {
     let retry = 100;
     while (page.url() != url) {
         if (retry < 0) {
-            throw new Error(`找开的页面一直不对，重试了100 次`)
+            throw new Error(`找开的页面一直不对，重试了100 次${page.url()}`)
         }
         await page.waitForTimeout(100);
         retry--;

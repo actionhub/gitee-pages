@@ -64,7 +64,7 @@ function ensureCurrentPage(page, url) {
         let retry = 100;
         while (page.url() != url) {
             if (retry < 0) {
-                throw new Error(`找开的页面一直不对，重试了100 次`);
+                throw new Error(`找开的页面一直不对，重试了100 次${page.url()}`);
             }
             yield page.waitForTimeout(100);
             retry--;
