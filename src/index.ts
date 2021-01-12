@@ -117,7 +117,7 @@ let brower: Browser
     core.info("[" + new Date().toISOString() + "]点击需要部署的分支:" + branch)
 
     await page.type("#build_directory", directory, {delay: random(100, 200)})
-    core.info("[" + new Date().toISOString() + "]输入部署的目录:" + branch)
+    core.info("[" + new Date().toISOString() + "]输入部署的目录:" + directory)
 
     const selector = ".force-https-checkbox" + (https ? ":not(.checked)" : ".checked")
     const checkbox = await page.$(selector);
