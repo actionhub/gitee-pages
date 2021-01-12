@@ -11,4 +11,4 @@ jobs:
         with:
           username: okou19900722
           password: ${{ secrets.GITEE_PASSWORD }}
-          repository: "https://gitee.com/vertx-china/vertx-china"
+          repository: "https://gitee.com/okou19900722/svg-path-editor"
