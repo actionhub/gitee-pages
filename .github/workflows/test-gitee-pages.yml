@@ -14,3 +14,4 @@ jobs:
           username: okou19900722
           password: ${{ secrets.GITEE_PASSWORD }}
           repository: "https://gitee.com/okou19900722/svg-path-editor"
+          branch: test
