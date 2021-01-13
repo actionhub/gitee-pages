@@ -3,6 +3,9 @@ description: '自动刷新gitee pages服务'
 runs:
   using: 'node12'
   main: 'dist/index.js'
+branding:
+  icon: refresh-cw
+  color: red
 inputs:
   username:
     description: '用户名'
@@ -12,7 +15,7 @@ inputs:
     required: true
   repository:
     description: '仓库网址'
-    require: true
+    required: true
   branch:
     description: '部署分支'
     required: false
@@ -24,5 +27,5 @@ inputs:
   https:
     description: '开启https'
     required: false
-    default: true
+    default: 'true'
 
