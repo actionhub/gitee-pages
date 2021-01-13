@@ -15,3 +15,5 @@ jobs:
           password: ${{ secrets.GITEE_PASSWORD }}
           repository: "https://gitee.com/okou19900722/svg-path-editor"
           branch: test
+        env:
+          RUNNER_DEBUG: 1

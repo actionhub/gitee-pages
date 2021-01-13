@@ -1,8 +1,14 @@
 import * as core from "@actions/core"
 import * as github from "@actions/github"
+import * as io from "@actions/io"
+import * as artifact from "@actions/artifact"
 import {downloadBrowser} from "puppeteer/lib/cjs/puppeteer/node/install";
 import puppeteer, {Page, Browser} from "puppeteer"
 import * as params from "./parse-params";
+import path from "path";
+import fs from "fs";
+import compressing from "compressing";
+
 
 const username = params.get("username", '');
 const password = params.get("password", '');
@@ -27,6 +33,13 @@ async function ensureCurrentPage(page: Page, url: string) {
         }
         await page.waitForTimeout(100);
         retry--;
+    }
+}
+const screenShotPath = path.join(process.cwd(), "screen-shot")
+
+async function debugScreenshot(page: Page, p: string) {
+    if (core.isDebug()) {
+        await page.screenshot({path: path.join(screenShotPath, p), fullPage: true})
     }
 }
 
@@ -58,6 +71,10 @@ let brower: Browser
         repository = repository.substr(0, repository.length - 1)
         core.info(`[${new Date().toISOString()}]仓库以/结尾，去掉后的仓库地址是:${repository}`)
     }
+    if (!fs.existsSync(screenShotPath)) {
+        await io.mkdirP(screenShotPath)
+        core.info("[" + new Date().toISOString() + "]创建截图目录")
+    }
     core.info("[" + new Date().toISOString() + "]检测完成")
     core.endGroup()
 
@@ -76,12 +93,15 @@ let brower: Browser
     await page.waitForSelector("#user_login")
     await page.waitForSelector("#user_password")
     await page.waitForSelector("input[name=commit]")
+    await debugScreenshot(page, "step1.png")
 
     core.info("[" + new Date().toISOString() + "]输入账号")
     await page.type("#user_login", username, {delay: random(100, 200)})
+    await debugScreenshot(page, "step2.png")
 
     core.info("[" + new Date().toISOString() + "]输入密码")
     await page.type("#user_password", password, {delay: random(100, 200)})
+    await debugScreenshot(page, "step3.png")
 
     core.info("[" + new Date().toISOString() + "]点击登陆按钮")
     await page.click("input[name=commit]")
@@ -89,13 +109,16 @@ let brower: Browser
     await ensureCurrentPage(page, "https://gitee.com/")
 
     core.info("[" + new Date().toISOString() + "]登陆完成")
+    await debugScreenshot(page, "step4.png")
     core.endGroup()
 
     core.startGroup("[" + new Date().toISOString() + "]模拟用户打开仓库页")
     core.info("[" + new Date().toISOString() + "]打开仓库页面")
     await open(page, repository)
+    await debugScreenshot(page, "step5.png")
     core.info("[" + new Date().toISOString() + "]打开pages设置页面")
     await open(page, `${repository}/pages`)
+    await debugScreenshot(page, "step6.png")
     core.endGroup()
 
     core.startGroup("[" + new Date().toISOString() + "]配置pages")
@@ -106,8 +129,10 @@ let brower: Browser
 
     await page.click(".branch-choose-wrap")
     core.info("[" + new Date().toISOString() + "]点击分支下拉框")
+    await debugScreenshot(page, "step7.png")
     await page.type(".branch-choose-wrap .search.input input", branch, {delay: random(100, 200)})
     core.info("[" + new Date().toISOString() + "]输入分支名:" + branch)
+    await debugScreenshot(page, "step8.png")
 
     const els = await page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");
     if (els.length < 1) {
@@ -115,15 +140,18 @@ let brower: Browser
     }
     await els[0].click()
     core.info("[" + new Date().toISOString() + "]点击需要部署的分支:" + branch)
+    await debugScreenshot(page, "step9.png")
 
     await page.type("#build_directory", directory, {delay: random(100, 200)})
     core.info("[" + new Date().toISOString() + "]输入部署的目录:" + directory)
+    await debugScreenshot(page, "step10.png")
 
     const selector = ".force-https-checkbox" + (https ? ":not(.checked)" : ".checked")
     const checkbox = await page.$(selector);
     if (checkbox != null) {
         await checkbox.click()
         core.info(`[${new Date().toISOString()}]设置的是${https ? "开启" : "关闭"}https，但当前状态是${!https ? "开启" : "关闭"}状态，点击切换`)
+        await debugScreenshot(page, "step11.png")
     } else {
         core.info(`[${new Date().toISOString()}]设置的是${https ? "开启" : "关闭"}https，但当前状态也是${https ? "开启" : "关闭"}状态，不需要操作`)
     }
@@ -137,12 +165,13 @@ let brower: Browser
         core.info("[" + new Date().toISOString() + "]监听弹框")
         page.on("dialog", async e => {
             try {
-                const msg = "确定重新部署 Gitee Pages 吗?"
+                // const msg = "确定重新部署 Gitee Pages 吗?"
                 core.info("[" + new Date().toISOString() + "]监听到弹框：" + e.message());
                 // if (e.message() == msg || e.message() == "Are you sure to redeploy Gitee Pages?") {
                     core.info("[" + new Date().toISOString() + "]点击确认");
                     await e.accept(e.message());
                     core.info("[" + new Date().toISOString() + "]点击完成，等待部署完成！");
+                await debugScreenshot(page, "step12.png")
                 // }
                 resolve()
             } catch (e) {
@@ -161,6 +190,11 @@ let brower: Browser
     core.info("[" + new Date().toISOString() + "]操作完成")
     await brower.close()
 
+    if (core.isDebug()) {
+        await compressing.zip.compressDir(screenShotPath, screenShotPath + '.zip')
+        const client = artifact.create()
+        await client.uploadArtifact("screen-shot.zip", ["screen-shot.zip"], process.cwd())
+    }
 })().catch(e => {
     core.setFailed("[" + new Date().toISOString() + "]" + e)
     if (brower) {
