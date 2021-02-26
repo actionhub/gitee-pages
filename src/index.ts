@@ -20,6 +20,7 @@ const https = params.getBoolean("https", true);
 async function open(page: Page, url: string) {
     let response = await page.goto(url)
     if (response?.status() == 404) {
+        await debugScreenshot(page, "error1.png")
         throw new Error(`${url} 返回 404`)
     }
     await ensureCurrentPage(page, url)
@@ -29,6 +30,7 @@ async function ensureCurrentPage(page: Page, url: string) {
     let retry = 100;
     while (page.url() != url) {
         if (retry < 0) {
+            await debugScreenshot(page, "error2.png")
             throw new Error(`找开的页面一直不对，重试了100 次${page.url()}`)
         }
         await page.waitForTimeout(100);
@@ -36,10 +38,15 @@ async function ensureCurrentPage(page: Page, url: string) {
     }
 }
 const screenShotPath = path.join(process.cwd(), "screen-shot")
-
+let client: artifact.ArtifactClient;
 async function debugScreenshot(page: Page, p: string) {
     if (core.isDebug()) {
-        await page.screenshot({path: path.join(screenShotPath, p), fullPage: true})
+        let finalPath = path.join(screenShotPath, p)
+        await page.screenshot({path: finalPath, fullPage: true})
+        if (client == null) {
+            client = artifact.create();
+        }
+        await client.uploadArtifact(p, [finalPath], process.cwd())
     }
 }
 
@@ -136,6 +143,7 @@ let brower: Browser
 
     const els = await page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");
     if (els.length < 1) {
+        await debugScreenshot(page, "error3.png")
         throw new Error("要部署的分支不存在！");
     }
     await els[0].click()
@@ -184,17 +192,18 @@ let brower: Browser
         await deploy.click();
         await dialog
     } else {
+        await debugScreenshot(page, "error4.png")
         throw new Error("没有找到部署按钮，部署失败")
     }
     core.endGroup()
     core.info("[" + new Date().toISOString() + "]操作完成")
     await brower.close()
 
-    if (core.isDebug()) {
-        await compressing.zip.compressDir(screenShotPath, screenShotPath + '.zip')
-        const client = artifact.create()
-        await client.uploadArtifact("screen-shot.zip", ["screen-shot.zip"], process.cwd())
-    }
+    // if (core.isDebug()) {
+    //     await compressing.zip.compressDir(screenShotPath, screenShotPath + '.zip')
+    //     const client = artifact.create()
+    //     await client.uploadArtifact("screen-shot.zip", ["screen-shot.zip"], process.cwd())
+    // }
 })().catch(e => {
     core.setFailed("[" + new Date().toISOString() + "]" + e)
     if (brower) {
