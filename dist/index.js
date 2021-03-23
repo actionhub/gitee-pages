@@ -135,6 +135,8 @@ let brower;
     });
     let page = yield brower.newPage();
     core.startGroup("[" + new Date().toISOString() + "]开始登陆");
+    yield page.goto("https://gitee.com");
+    yield debugScreenshot(page, "step0.png");
     yield page.goto("https://gitee.com/login");
     yield page.waitForSelector("#user_login");
     yield page.waitForSelector("#user_password");

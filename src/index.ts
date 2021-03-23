@@ -96,6 +96,8 @@ let brower: Browser
     })
     let page = await brower.newPage()
     core.startGroup("[" + new Date().toISOString() + "]开始登陆")
+    await page.goto("https://gitee.com")
+    await debugScreenshot(page, "step0.png")
     await page.goto("https://gitee.com/login")
     await page.waitForSelector("#user_login")
     await page.waitForSelector("#user_password")
