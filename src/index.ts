@@ -64,9 +64,9 @@ let brower: Browser
             throw new Error("username和password必须配置")
         }
     }
-    core.startGroup("[" + new Date().toISOString() + "]检测配置")
+    core.startGroup("检测配置")
     if (!repository.startsWith("https://gitee.com")) {
-        core.setFailed("[" + new Date().toISOString() + "]仓库网址不正确，需要填写完整的仓库地址")
+        core.setFailed("仓库网址不正确，需要填写完整的仓库地址")
         return
     }
     if (repository.endsWith(".git")) {
@@ -80,65 +80,65 @@ let brower: Browser
     }
     if (!fs.existsSync(screenShotPath)) {
         await io.mkdirP(screenShotPath)
-        core.info("[" + new Date().toISOString() + "]创建截图目录")
+        core.info("创建截图目录")
     }
-    core.info("[" + new Date().toISOString() + "]检测完成")
+    core.info("检测完成")
     core.endGroup()
 
-    core.startGroup("[" + new Date().toISOString() + "]配置浏览器环境")
-    core.info("[" + new Date().toISOString() + "]开始下载浏览器")
+    core.startGroup("配置浏览器环境")
+    core.info("开始下载浏览器")
     await downloadBrowser()
-    core.info("[" + new Date().toISOString() + "]浏览器下载完成")
+    core.info("浏览器下载完成")
 
-    core.info("[" + new Date().toISOString() + "]开始自动刷新gitee pages")
+    core.info("开始自动刷新gitee pages")
     brower = await puppeteer.launch({
         args: ['--lang=zh-CN']
     })
     let page = await brower.newPage()
-    core.startGroup("[" + new Date().toISOString() + "]开始登陆")
+    core.startGroup("开始登陆")
     await page.goto("https://gitee.com/login#lang=zh-CN")
     await page.waitForSelector("#user_login")
     await page.waitForSelector("#user_password")
     await page.waitForSelector("input[name=commit]")
     await debugScreenshot(page, "step1.png")
 
-    core.info("[" + new Date().toISOString() + "]输入账号")
+    core.info("输入账号")
     await page.type("#user_login", username, {delay: random(100, 200)})
     await debugScreenshot(page, "step2.png")
 
-    core.info("[" + new Date().toISOString() + "]输入密码")
+    core.info("输入密码")
     await page.type("#user_password", password, {delay: random(100, 200)})
     await debugScreenshot(page, "step3.png")
 
-    core.info("[" + new Date().toISOString() + "]点击登陆按钮")
+    core.info("点击登陆按钮")
     await page.click("input[name=commit]")
 
     await ensureCurrentPage(page, "https://gitee.com/")
 
-    core.info("[" + new Date().toISOString() + "]登陆完成")
+    core.info("登陆完成")
     await debugScreenshot(page, "step4.png")
     core.endGroup()
 
-    core.startGroup("[" + new Date().toISOString() + "]模拟用户打开仓库页")
-    core.info("[" + new Date().toISOString() + "]打开仓库页面")
+    core.startGroup("模拟用户打开仓库页")
+    core.info("打开仓库页面")
     await open(page, repository)
     await debugScreenshot(page, "step5.png")
-    core.info("[" + new Date().toISOString() + "]打开pages设置页面")
+    core.info("打开pages设置页面")
     await open(page, `${repository}/pages`)
     await debugScreenshot(page, "step6.png")
     core.endGroup()
 
-    core.startGroup("[" + new Date().toISOString() + "]配置pages")
+    core.startGroup("配置pages")
     await page.waitForSelector(".branch-choose-wrap");
     await page.waitForSelector(".branch-choose-wrap .search.input input");
     await page.waitForSelector("#build_directory");
     await page.waitForSelector(".force-https-checkbox");
 
     await page.click(".branch-choose-wrap")
-    core.info("[" + new Date().toISOString() + "]点击分支下拉框")
+    core.info("点击分支下拉框")
     await debugScreenshot(page, "step7.png")
     await page.type(".branch-choose-wrap .search.input input", branch, {delay: random(100, 200)})
-    core.info("[" + new Date().toISOString() + "]输入分支名:" + branch)
+    core.info("输入分支名:" + branch)
     await debugScreenshot(page, "step8.png")
 
     const els = await page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");
@@ -147,11 +147,11 @@ let brower: Browser
         throw new Error("要部署的分支不存在！");
     }
     await els[0].click()
-    core.info("[" + new Date().toISOString() + "]点击需要部署的分支:" + branch)
+    core.info("点击需要部署的分支:" + branch)
     await debugScreenshot(page, "step9.png")
 
     await page.type("#build_directory", directory, {delay: random(100, 200)})
-    core.info("[" + new Date().toISOString() + "]输入部署的目录:" + directory)
+    core.info("输入部署的目录:" + directory)
     await debugScreenshot(page, "step10.png")
 
     const selector = ".force-https-checkbox" + (https ? ":not(.checked)" : ".checked")
@@ -163,22 +163,22 @@ let brower: Browser
     } else {
         core.info(`[${new Date().toISOString()}]设置的是${https ? "开启" : "关闭"}https，但当前状态也是${https ? "开启" : "关闭"}状态，不需要操作`)
     }
-    core.info("[" + new Date().toISOString() + "]配置完成")
+    core.info("配置完成")
     core.endGroup()
 
 
-    core.startGroup("[" + new Date().toISOString() + "]部署")
+    core.startGroup("部署")
     const deploy = await page.$("#pages-branch .update_deploy")
     const dialog = new Promise<void>((resolve, reject) => {
-        core.info("[" + new Date().toISOString() + "]监听弹框")
+        core.info("监听弹框")
         page.on("dialog", async e => {
             try {
                 // const msg = "确定重新部署 Gitee Pages 吗?"
-                core.info("[" + new Date().toISOString() + "]监听到弹框：" + e.message());
+                core.info("监听到弹框：" + e.message());
                 // if (e.message() == msg || e.message() == "Are you sure to redeploy Gitee Pages?") {
-                    core.info("[" + new Date().toISOString() + "]点击确认");
+                    core.info("点击确认");
                     await e.accept(e.message());
-                    core.info("[" + new Date().toISOString() + "]点击完成，等待部署完成！");
+                    core.info("点击完成，等待部署完成！");
                 await debugScreenshot(page, "step12.png")
                 // }
                 resolve()
@@ -196,7 +196,7 @@ let brower: Browser
         throw new Error("没有找到部署按钮，部署失败")
     }
     core.endGroup()
-    core.info("[" + new Date().toISOString() + "]操作完成")
+    core.info("操作完成")
     await brower.close()
 
     // if (core.isDebug()) {
@@ -205,7 +205,7 @@ let brower: Browser
     //     await client.uploadArtifact("screen-shot.zip", ["screen-shot.zip"], process.cwd())
     // }
 })().catch(e => {
-    core.setFailed("[" + new Date().toISOString() + "]" + e)
+    core.setFailed("" + e)
     if (brower) {
         brower.close().catch(e => {
             console.error(e);
