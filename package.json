@@ -4,7 +4,7 @@
   "description": "自动刷新gitee pages服务",
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc && ncc build",
+    "build": "tsc && ncc build -m",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsc && env-cmd -f set-env.js node lib/index.js"
   },
