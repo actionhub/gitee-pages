@@ -191,6 +191,8 @@ let brower: Browser
     if (deploy) {
         await deploy.click();
         await dialog
+        core.info("等待2秒钟，确保网络请求已经发出去。");
+        await new Promise(resolve => setTimeout(resolve, 2000));
     } else {
         await debugScreenshot(page, "error4.png")
         throw new Error("没有找到部署按钮，部署失败")
