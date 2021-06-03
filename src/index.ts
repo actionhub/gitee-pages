@@ -183,7 +183,7 @@ let brower: Browser
                     deploy.click()
                 }
                 debugScreenshot(page, `error5-${retry}.png`, true);
-            }, 3);
+            }, 3000);
             page.on("dialog", async e => {
                 try {
                     clearInterval(handle)
