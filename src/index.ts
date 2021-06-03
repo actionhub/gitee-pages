@@ -7,7 +7,6 @@ import puppeteer, {Page, Browser} from "puppeteer"
 import * as params from "./parse-params";
 import path from "path";
 import fs from "fs";
-import compressing from "compressing";
 
 
 const username = params.get("username", '');
@@ -20,7 +19,7 @@ const https = params.getBoolean("https", true);
 async function open(page: Page, url: string) {
     let response = await page.goto(url)
     if (response?.status() == 404) {
-        await debugScreenshot(page, "error1.png")
+        await debugScreenshot(page, "error1.png", true)
         throw new Error(`${url} 返回 404`)
     }
     await ensureCurrentPage(page, url)
@@ -30,7 +29,7 @@ async function ensureCurrentPage(page: Page, url: string) {
     let retry = 100;
     while (page.url() != url) {
         if (retry < 0) {
-            await debugScreenshot(page, "error2.png")
+            await debugScreenshot(page, "error2.png", true)
             throw new Error(`找开的页面一直不对，重试了100 次${page.url()}`)
         }
         await page.waitForTimeout(100);
@@ -39,8 +38,8 @@ async function ensureCurrentPage(page: Page, url: string) {
 }
 const screenShotPath = path.join(process.cwd(), "screen-shot")
 let client: artifact.ArtifactClient;
-async function debugScreenshot(page: Page, p: string) {
-    if (core.isDebug()) {
+async function debugScreenshot(page: Page, p: string, force: boolean = false) {
+    if (force || core.isDebug()) {
         let finalPath = path.join(screenShotPath, p)
         await page.screenshot({path: finalPath, fullPage: true})
         if (client == null) {
@@ -143,7 +142,7 @@ let brower: Browser
 
     const els = await page.$$(".branch-choose-wrap .menu .scrolling.menu div:not(.filtered)");
     if (els.length < 1) {
-        await debugScreenshot(page, "error3.png")
+        await debugScreenshot(page, "error3.png", true)
         throw new Error("要部署的分支不存在！");
     }
     await els[0].click()
@@ -169,32 +168,46 @@ let brower: Browser
 
     core.startGroup("部署")
     const deploy = await page.$("#pages-branch .update_deploy")
-    const dialog = new Promise<void>((resolve, reject) => {
-        core.info("监听弹框")
-        page.on("dialog", async e => {
-            try {
-                // const msg = "确定重新部署 Gitee Pages 吗?"
-                core.info("监听到弹框：" + e.message());
-                // if (e.message() == msg || e.message() == "Are you sure to redeploy Gitee Pages?") {
-                    core.info("点击确认");
-                    await e.accept(e.message());
-                    core.info("点击完成，等待部署完成！");
-                await debugScreenshot(page, "step12.png")
-                // }
-                resolve()
-            } catch (e) {
-                reject(e);
-            }
-        })
-    })
 
     if (deploy) {
+        const dialog = new Promise<void>((resolve, reject) => {
+            core.info("监听弹框")
+            let retry = 0;
+            let handle = setInterval(() => {
+                if (retry == 5) {
+                    clearInterval(handle)
+                    reject(new Error("超时"));
+                } else {
+                    core.info("失败，再次尝试")
+                    retry++;
+                    deploy.click()
+                }
+                debugScreenshot(page, `error5-${retry}.png`, true);
+            }, 3);
+            page.on("dialog", async e => {
+                try {
+                    clearInterval(handle)
+                    // const msg = "确定重新部署 Gitee Pages 吗?"
+                    core.info("监听到弹框：" + e.message());
+                    // if (e.message() == msg || e.message() == "Are you sure to redeploy Gitee Pages?") {
+                        core.info("点击确认");
+                        await e.accept(e.message());
+                        core.info("点击完成，等待部署完成！");
+                    await debugScreenshot(page, "step12.png")
+                    // }
+                    resolve()
+                } catch (e) {
+                    reject(e);
+                }
+            })
+        })
         await deploy.click();
+        core.info("点击完成，等待弹框！");
         await dialog
         core.info("等待2秒钟，确保网络请求已经发出去。");
         await new Promise(resolve => setTimeout(resolve, 2000));
     } else {
-        await debugScreenshot(page, "error4.png")
+        await debugScreenshot(page, "error4.png", true)
         throw new Error("没有找到部署按钮，部署失败")
     }
     core.endGroup()
